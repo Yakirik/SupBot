@@ -1,21 +1,28 @@
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.types import  ReplyKeyboardMarkup, InlineKeyboardMarkup
+from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+from data import history_callback_data
 
-class KeyboardBuilder:
 
-    @staticmethod
-    def build_main_menu() -> ReplyKeyboardMarkup:
-        buttons = [
-            'Balance',
-            'Limit',
-            'History',
-            'Get card number',
-            'Set card number'
-        ]
-        builder = ReplyKeyboardBuilder()
+def build_main_menu() -> ReplyKeyboardMarkup:
+    builder = ReplyKeyboardBuilder()
+    builder.button(text='Balance', )
+    builder.button(text='Limit',)
+    builder.button(text='History',)
+    builder.button(text='Get card number',)
+    builder.button(text='Set card number',)
 
-        for button in buttons:
-            builder.button(text=button)
-        builder.adjust(3)
+    builder.adjust(3)
 
-        return builder.as_markup(resize_keyboard=True)
+    return builder.as_markup(resize_keyboard=True)
+
+def build_history_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text='1 day', callback_data=history_callback_data['1 day'])
+    builder.button(text='3 days', callback_data=history_callback_data['3 days'])
+    builder.button(text='7 days', callback_data=history_callback_data['7 days'])
+    builder.button(text='1 Month', callback_data=history_callback_data['1 month'])
+    # builder.button(text='Back')
+
+    builder.adjust(4)
+
+    return builder.as_markup(resize_keyboard=True)
