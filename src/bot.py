@@ -7,16 +7,20 @@ from database import DatabaseManager
 from handlers import main_router
 from syp_api_manager import SypApiManager
 from middlewares import DatabaseMiddleware, SypApiMiddleware
-from logging import DEBUG, FileHandler, Formatter, Logger
+from logging import FileHandler, Formatter, Logger
+
+load_dotenv(find_dotenv())
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 class SypBot():
     db_manager: DatabaseManager
     syp_api_manager: SypApiManager
+    logger: Logger
 
     def __init__(self, token):
         self.bot = Bot(token)
         self.dispatcher = Dispatcher()
-        
+        self.logger = self.get_logger()
         self.dispatcher.startup.register(self.on_startup)
         self.dispatcher.shutdown.register(self.on_shutdown)
         self.dispatcher.include_router(main_router)
@@ -25,7 +29,6 @@ class SypBot():
         await self.dispatcher.start_polling(self.bot)
 
     async def on_startup(self):
-        logging.basicConfig(level=logging.INFO)
         self.db_manager = DatabaseManager()
         self.syp_api_manager = SypApiManager()
         await self.db_manager.create_db()
@@ -35,8 +38,9 @@ class SypBot():
     async def on_shutdown(self):
         await self.syp_api_manager.session.close()
 
-    def set_logging(self):
-        logger = Logger('syp_bot_logger', DEBUG)
+    def get_logger(self):
+        logger = logging.getLogger('main')
+        logging.basicConfig(level=logging.INFO)
         handler =FileHandler('syp_bot.log')
         handler.setFormatter(
             Formatter(
@@ -46,12 +50,6 @@ class SypBot():
         )
         logger.addHandler(handler)
 
-
-
-
 if __name__ == "__main__":
-    load_dotenv(find_dotenv())
-    BOT_TOKEN = os.getenv('BOT_TOKEN')
-    botik = SypBot(BOT_TOKEN)
-
-    asyncio.run(botik.run())
+    bot = SypBot(BOT_TOKEN)
+    asyncio.run(bot.run())
