@@ -6,16 +6,22 @@ from states import GetHistoryStateGroup
 from data import LIMIT_TEXT
 from database import DatabaseManager
 from syp_api_manager import SypApiManager
+from logger import get_logger
 
 router = Router()
+logger = get_logger(__name__)
 
 @router.message(Command('start'))
 async def start_command_handler(message: types.Message, db_manager: DatabaseManager):
     chat_id = message.chat.id
-    username = message.chat.username
+    username = message.from_user.username
     if not await db_manager.get_user(chat_id):
-        await db_manager.add_user(chat_id, username)
-    await message.answer(text='her', reply_markup=build_main_menu())
+        logger.info(f'User {username} joined the chat')
+        try:
+            await db_manager.add_user(chat_id, username)
+        except Exception as e:
+            logger.error(e)
+    await message.answer(text=f'Hello {username}', reply_markup=build_main_menu())
 
 @router.message(Command('menu'))
 async def menu_command_handler(message: types.Message):

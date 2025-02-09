@@ -1,12 +1,13 @@
 from aiogram import Router, types, F
 from aiogram.fsm.context import FSMContext 
 from keyboards import build_main_menu
+from logger import get_logger
 from states import SetCardStateGroup
 from database import DatabaseManager
 import re
 
 router = Router()
-
+logger = get_logger(__name__)
 
 @router.message(F.text == 'Set card number')
 async def set_card_number_handler(message: types.Message, state: FSMContext):
