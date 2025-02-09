@@ -1,4 +1,3 @@
-from .base import get_db_session
 from .database_manager import DatabaseManager 
 
 __all__ = [

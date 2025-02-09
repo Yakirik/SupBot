@@ -1,6 +1,6 @@
 from aiogram.types import  ReplyKeyboardMarkup, InlineKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
-from data import history_callback_data
+from data import history_callback_data, callback_back
 
 
 def build_main_menu() -> ReplyKeyboardMarkup:
@@ -21,7 +21,7 @@ def build_history_keyboard() -> InlineKeyboardMarkup:
     builder.button(text='3 days', callback_data=history_callback_data['3 days'])
     builder.button(text='7 days', callback_data=history_callback_data['7 days'])
     builder.button(text='1 Month', callback_data=history_callback_data['1 month'])
-    # builder.button(text='Back')
+    builder.button(text='Back', callback_data=callback_back)
 
     builder.adjust(4)
 

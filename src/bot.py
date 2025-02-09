@@ -5,32 +5,20 @@ from aiogram import Dispatcher, Bot
 from dotenv import load_dotenv, find_dotenv
 from database import DatabaseManager
 from handlers import main_router
-
-
-class BotCore:
-    async def get_balance(self):
-        pass
-
-    async def get_limit(self):
-        pass
-
-    async def get_history(self):
-        pass
-
-    async def get_card_number(self):
-        pass
-
-    async def set_card_number(self):
-        pass
-
+from syp_api_manager import SypApiManager
+from middlewares import DatabaseMiddleware, SypApiMiddleware
+from logging import DEBUG, FileHandler, Formatter, Logger
 
 class SypBot():
+    db_manager: DatabaseManager
+    syp_api_manager: SypApiManager
+
     def __init__(self, token):
         self.bot = Bot(token)
         self.dispatcher = Dispatcher()
         
         self.dispatcher.startup.register(self.on_startup)
-
+        self.dispatcher.shutdown.register(self.on_shutdown)
         self.dispatcher.include_router(main_router)
 
     async def run(self):
@@ -38,7 +26,26 @@ class SypBot():
 
     async def on_startup(self):
         logging.basicConfig(level=logging.INFO)
-        # await DatabaseManager.create_db()
+        self.db_manager = DatabaseManager()
+        self.syp_api_manager = SypApiManager()
+        await self.db_manager.create_db()
+        self.dispatcher.update.middleware(DatabaseMiddleware(db_manager=self.db_manager))
+        self.dispatcher.update.middleware(SypApiMiddleware(syp_api_manager=self.syp_api_manager))
+
+    async def on_shutdown(self):
+        await self.syp_api_manager.session.close()
+
+    def set_logging(self):
+        logger = Logger('syp_bot_logger', DEBUG)
+        handler =FileHandler('syp_bot.log')
+        handler.setFormatter(
+            Formatter(
+                '[%(asctime)s][%(levelname)s] %(message)s',
+                '%Y-%m-%d %H:%M:%S',
+            )
+        )
+        logger.addHandler(handler)
+
 
 
 
