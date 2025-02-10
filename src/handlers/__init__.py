@@ -1,7 +1,8 @@
-from .history_handlers import router as history_router
+from aiogram import Router
+
 from .card_number_handlers import router as card_number_router
 from .default_handlers import router as default_router
-from aiogram import Router
+from .history_handlers import router as history_router
 
 main_router = Router()
 main_router.include_routers(
@@ -10,6 +11,6 @@ main_router.include_routers(
     default_router,
 )
 
-__all__= [
+__all__ = [
     'main_router',
 ]

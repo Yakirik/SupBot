@@ -1,21 +1,27 @@
-from aiogram import Router, types, F
-from aiogram.fsm.context import FSMContext 
+import re
+
+from aiogram import F, Router, types
+from aiogram.fsm.context import FSMContext
+
+from database import DatabaseManager
 from keyboards import build_main_menu
 from logger import get_logger
 from states import SetCardStateGroup
-from database import DatabaseManager
-import re
 
 router = Router()
 logger = get_logger(__name__)
+
 
 @router.message(F.text == 'Set card number')
 async def set_card_number_handler(message: types.Message, state: FSMContext):
     await state.set_state(SetCardStateGroup.wait_card)
     await message.answer(text='Type your card')
 
+
 @router.message(SetCardStateGroup.wait_card)
-async def process_card_number_handler(message: types.Message, state: FSMContext, db_manager: DatabaseManager):
+async def process_card_number_handler(
+    message: types.Message, state: FSMContext, db_manager: DatabaseManager
+):
     await state.clear()
     if not re.match(r'^\d{13}$', message.text):
         await message.answer(text='Card number must be a 13-symbols numeric')
@@ -23,4 +29,3 @@ async def process_card_number_handler(message: types.Message, state: FSMContext,
         chat_id = message.chat.id
         await db_manager.set_card_number(chat_id, int(message.text))
         await message.answer(text='all good', reply_markup=build_main_menu())
-

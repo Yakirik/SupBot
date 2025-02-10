@@ -1,22 +1,27 @@
-from aiogram import Router, F
-from aiogram.fsm.context import FSMContext 
 from datetime import datetime
+
+from aiogram import F, Router
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery
+
+from data import HISTORY_TEXT, history_callback_data
+from database import DatabaseManager
 from keyboards import build_main_menu
 from logger import get_logger
 from states import GetHistoryStateGroup
-from data import history_callback_data, HISTORY_TEXT
-from aiogram.types import CallbackQuery
-from database import DatabaseManager
 from syp_api_manager import SypApiManager
 
 router = Router()
 logger = get_logger(__name__)
 
-@router.callback_query(F.data.in_(history_callback_data.values()), GetHistoryStateGroup.choose_period)
+
+@router.callback_query(
+    F.data.in_(history_callback_data.values()), GetHistoryStateGroup.choose_period
+)
 async def select_history_period_handler(
-    callback_query: CallbackQuery, 
-    state: FSMContext, 
-    syp_api_manager: SypApiManager, 
+    callback_query: CallbackQuery,
+    state: FSMContext,
+    syp_api_manager: SypApiManager,
     db_manager: DatabaseManager,
 ) -> None:
     chat_id = callback_query.message.chat.id
@@ -40,10 +45,9 @@ async def select_history_period_handler(
         await callback_query.message.answer(text='No history', reply_markup=build_main_menu())
     await state.clear()
 
+
 @router.callback_query(GetHistoryStateGroup.choose_period)
 async def back_history_period_handler(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback_query.message.delete()
     await callback_query.message.answer(text='Back', reply_markup=build_main_menu())
-
-    

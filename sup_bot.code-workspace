@@ -2,7 +2,7 @@
     "folders": [
         {
             "name": "sup-bot",
-            "path": "."
+            "path": "./"
         },
     ],
     "settings": {
@@ -52,7 +52,6 @@
             "ms-python.black-formatter",
             "ms-python.flake8",
             "ms-python.isort",
-            "nickmillerdev.pytest-fixtures"
         ]
     },
 }

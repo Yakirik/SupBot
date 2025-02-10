@@ -1,8 +1,15 @@
 import os
-from sqlalchemy.ext.asyncio import  async_sessionmaker, create_async_engine, AsyncSession, AsyncEngine
 
-from .models import User, Base
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+
+from .models import Base, User
+
 
 class DatabaseManager:
     engine: AsyncEngine
@@ -30,11 +37,11 @@ class DatabaseManager:
         async with self.session_pool() as session:
             try:
                 return await session.get(User, chat_id)
-            except Exception as e:
+            except Exception:
                 pass
 
     async def set_card_number(self, chat_id: int, card_number: int) -> None:
-        async with self.session_pool() as session: 
+        async with self.session_pool() as session:
             obj = await session.get(User, chat_id)
             if obj:
                 obj.card_number = card_number
@@ -45,4 +52,3 @@ class DatabaseManager:
             obj = await session.get(User, chat_id)
             if obj:
                 return obj.card_number
-        

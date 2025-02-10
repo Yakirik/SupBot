@@ -1,18 +1,21 @@
 import asyncio
 import logging
 import os
-from aiogram import Dispatcher, Bot
-from dotenv import load_dotenv, find_dotenv
+from logging import FileHandler, Formatter, Logger
+
+from aiogram import Bot, Dispatcher
+from dotenv import find_dotenv, load_dotenv
+
 from database import DatabaseManager
 from handlers import main_router
-from syp_api_manager import SypApiManager
 from middlewares import DatabaseMiddleware, SypApiMiddleware
-from logging import FileHandler, Formatter, Logger
+from syp_api_manager import SypApiManager
 
 load_dotenv(find_dotenv())
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
-class SypBot():
+
+class SypBot:
     db_manager: DatabaseManager
     syp_api_manager: SypApiManager
     logger: Logger
@@ -41,7 +44,7 @@ class SypBot():
     def get_logger(self):
         logger = logging.getLogger('main')
         logging.basicConfig(level=logging.INFO)
-        handler =FileHandler('syp_bot.log')
+        handler = FileHandler('syp_bot.log')
         handler.setFormatter(
             Formatter(
                 '[%(asctime)s][%(levelname)s] %(message)s',
@@ -49,6 +52,7 @@ class SypBot():
             )
         )
         logger.addHandler(handler)
+
 
 if __name__ == "__main__":
     bot = SypBot(BOT_TOKEN)

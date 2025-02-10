@@ -1,19 +1,21 @@
-from aiogram.types import  ReplyKeyboardMarkup, InlineKeyboardMarkup
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
-from data import history_callback_data, callback_back
+from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+
+from data import callback_back, history_callback_data
 
 
 def build_main_menu() -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
-    builder.button(text='Balance', )
-    builder.button(text='Limit',)
-    builder.button(text='History',)
-    builder.button(text='Get card number',)
-    builder.button(text='Set card number',)
+    builder.button(text='Balance')
+    builder.button(text='Limit')
+    builder.button(text='History')
+    builder.button(text='Get card number')
+    builder.button(text='Set card number')
 
     builder.adjust(3)
 
     return builder.as_markup(resize_keyboard=True)
+
 
 def build_history_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
