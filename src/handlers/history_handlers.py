@@ -33,13 +33,17 @@ async def select_history_period_handler(
                 amount=transaction['amount'],
                 date=time,
             )
+        await callback_query.message.delete()
         await callback_query.message.answer(text=answer, reply_markup=build_main_menu())
     else:
-        await callback_query.message.answer(text='Failed to get history', reply_markup=build_main_menu())
+        await callback_query.message.delete()
+        await callback_query.message.answer(text='No history', reply_markup=build_main_menu())
     await state.clear()
 
 @router.callback_query(GetHistoryStateGroup.choose_period)
 async def back_history_period_handler(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()
-    await callback_query.message.delete_reply_markup()
+    await callback_query.message.delete()
+    await callback_query.message.answer(text='Back', reply_markup=build_main_menu())
+
     

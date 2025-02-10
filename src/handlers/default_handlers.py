@@ -28,14 +28,15 @@ async def menu_command_handler(message: types.Message):
     await message.answer(text='her', reply_markup=build_main_menu())
 
 @router.message(F.text == 'Balance')
-async def balance_handler(message: types.Message, syp_api_manager: SypApiManager):
+async def balance_handler(message: types.Message, syp_api_manager: SypApiManager, db_manager: DatabaseManager):
     chat_id = message.chat.id
-    balance = await syp_api_manager.get_balance(chat_id)
-    await message.answer(text=balance)
-    # if not balance:
-    #     await message.answer(text='Failed to get balance')
-    # else:
-    #     await message.answer(text=balance)
+    card_number = await db_manager.get_card_number(chat_id)
+    if not card_number:
+        await message.answer(text='First set card')
+    elif balance := await syp_api_manager.get_balance(card_number):
+        await message.answer(text=f'Current balance: {balance}₽')
+    else:
+        await message.answer(text='Failed to get balance')
 
 @router.message(F.text == 'Limit')
 async def limit_handler(message: types.Message, syp_api_manager: SypApiManager, db_manager: DatabaseManager):
@@ -58,10 +59,8 @@ async def get_card_number_handler(message: types.Message, syp_api_manager: SypAp
     card_number = await db_manager.get_card_number(chat_id)
     if not card_number:
         await message.answer(text='First set card')    
-    elif balance := syp_api_manager.get_balance(card_number):
-        await message.answer(text=f'Current balance: {balance}₽')
     else:
-        await message.answer(text='Failed to get balance')
+        await message.answer(text=f'{card_number}', reply_markup=build_main_menu())
 
 @router.message(F.text == 'History')
 async def history_handler(message: types.Message, state: FSMContext):
