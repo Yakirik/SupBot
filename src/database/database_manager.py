@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from .models import Base, User
+from .models import Base, Transaction, User
 
 
 class DatabaseManager:
@@ -52,3 +52,15 @@ class DatabaseManager:
             obj = await session.get(User, chat_id)
             if obj:
                 return obj.card_number
+
+    async def get_users(self) -> None:
+        pass
+
+    async def get_last_transaction(self, chat_id: int) -> Transaction:
+        pass
+
+    async def edit_transaction(self, transaction_id: int) -> None:
+        pass
+
+    async def add_transaction(self, transaction: Transaction) -> None:
+        pass

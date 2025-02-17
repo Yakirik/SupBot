@@ -21,3 +21,16 @@ class User(Base):
     last_get_history_request: Mapped[datetime | None]
     last_get_limit_request: Mapped[datetime | None]
     last_transaction: Mapped[str | None]
+
+
+class Transaction(Base):
+    __tablename__ = 'transaction'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    merchant_id: Mapped[int]
+    name: Mapped[str]
+    mcc: Mapped[int]
+    amount: Mapped[int]
+    date: Mapped[datetime]
+    is_last: Mapped[bool]
+    chat_id: Mapped[int] = mapped_column()  # foreign key
