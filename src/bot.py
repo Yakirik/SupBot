@@ -44,16 +44,16 @@ class SypBot:
 
     async def notificate(self):
         while True:
-            users = self.db_manager.get_users()
-            for user in users:
-                last_db_transaction = await self.db_manager.get_last_transaction(user.chat_id)
-                history = await self.syp_api_manager.get_history(user.chat_id, 1)
-                if history[0]['date'] == last_db_transaction.date:
-                    continue
-                await self.bot.send_message(user.chat_id)
-                await self.db_manager.edit_transaction(last_db_transaction.id)
-                await self.db_manager.add_transaction()
-            await asyncio.sleep(180)
+            # users = await self.db_manager.get_users()
+            # for user in users:
+            # last_db_transaction = await self.db_manager.get_last_transaction(user.chat_id)
+            # history = await self.syp_api_manager.get_history(user.chat_id, 1)
+            # if history[0]['date'] == last_db_transaction.date:
+            #     continue
+            # await self.bot.send_message(user.chat_id, 'lol')
+            # await self.db_manager.edit_transaction(last_db_transaction.id)
+            # await self.db_manager.add_transaction()
+            await asyncio.sleep(10)
 
     def get_logger(self):
         logger = logging.getLogger('main')

@@ -1,6 +1,7 @@
 import os
 
 from dotenv import find_dotenv, load_dotenv
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -53,8 +54,12 @@ class DatabaseManager:
             if obj:
                 return obj.card_number
 
-    async def get_users(self) -> None:
-        pass
+    async def get_users(self) -> list[User]:
+        async with self.session_pool() as session:
+            query = select(User)
+            response = await session.execute(query)
+            users = response.scalars().all()
+            return users
 
     async def get_last_transaction(self, chat_id: int) -> Transaction:
         pass
