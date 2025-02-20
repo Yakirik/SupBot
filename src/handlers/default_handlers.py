@@ -17,12 +17,13 @@ logger = get_logger(__name__)
 async def start_command_handler(message: types.Message, db_manager: DatabaseManager):
     chat_id = message.chat.id
     username = message.from_user.username
-    if not await db_manager.get_user(chat_id):
-        logger.info(f'User {username} joined the chat')
-        try:
-            await db_manager.add_user(chat_id, username)
-        except Exception as e:
-            logger.error(e)
+    async with db_manager.session_pool() as session:
+        if not await db_manager.get_user(session, chat_id):
+            logger.info(f'User {username} joined the chat')
+            try:
+                await db_manager.add_user(session, chat_id, username)
+            except Exception as e:
+                logger.error(e)
     await message.answer(text=f'Hello {username}', reply_markup=build_main_menu())
 
 
@@ -36,7 +37,9 @@ async def balance_handler(
     message: types.Message, syp_api_manager: SypApiManager, db_manager: DatabaseManager
 ):
     chat_id = message.chat.id
-    card_number = await db_manager.get_card_number(chat_id)
+    async with db_manager.session_pool() as session:
+        card_number = await db_manager.get_card_number(session, chat_id)
+
     if not card_number:
         await message.answer(text='First set card')
     elif balance := await syp_api_manager.get_balance(card_number):
@@ -50,7 +53,9 @@ async def limit_handler(
     message: types.Message, syp_api_manager: SypApiManager, db_manager: DatabaseManager
 ):
     chat_id = message.chat.id
-    card_number = await db_manager.get_card_number(chat_id)
+    async with db_manager.session_pool() as session:
+        card_number = await db_manager.get_card_number(session, chat_id)
+
     if not card_number:
         await message.answer(text='First set card')
     elif limit := await syp_api_manager.get_limit(card_number):
@@ -66,7 +71,9 @@ async def get_card_number_handler(
     message: types.Message, syp_api_manager: SypApiManager, db_manager: DatabaseManager
 ):
     chat_id = message.chat.id
-    card_number = await db_manager.get_card_number(chat_id)
+    async with db_manager.session_pool() as session:
+        card_number = await db_manager.get_card_number(session, chat_id)
+
     if not card_number:
         await message.answer(text='First set card')
     else:

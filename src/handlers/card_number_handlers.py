@@ -27,5 +27,6 @@ async def process_card_number_handler(
         await message.answer(text='Card number must be a 13-symbols numeric')
     else:
         chat_id = message.chat.id
-        await db_manager.set_card_number(chat_id, int(message.text))
+        async with db_manager.session_pool() as session:
+            await db_manager.set_card_number(session, chat_id, int(message.text))
         await message.answer(text='all good', reply_markup=build_main_menu())

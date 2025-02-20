@@ -32,19 +32,20 @@ class SypApiManager:
             except Exception:
                 return None
 
-    async def get_history(self, card_number, days: int):
+    async def get_history(self, card_number, days: int = 30):
         url = f'https://meal.gift-cards.ru/api/1/cards/{card_number}'
 
         async with self.session.get(url) as response:
-            history = await response.json()
+            data = await response.json()
             try:
-                history = history['data']['history']
+                history = data['data']['history']
                 return [
                     {
-                        'name': transaction['locationName'][0],
+                        'locationName': transaction['locationName'][0],
                         'mcc': transaction['mcc'],
                         'amount': transaction['amount'],
                         'date': transaction['time'],
+                        'merchantId': transaction['merchantId'],
                     }
                     for transaction in history
                     if transaction['time'] >= (datetime.now() - timedelta(days=days)).isoformat()

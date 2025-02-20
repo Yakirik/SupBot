@@ -1,7 +1,10 @@
 import asyncio
 import logging
 import os
-from logging import FileHandler, Formatter, Logger
+from formatter import Formatter
+from logging import FileHandler
+from logging import Formatter as logging_formatter
+from logging import Logger
 
 from aiogram import Bot, Dispatcher
 from dotenv import find_dotenv, load_dotenv
@@ -44,23 +47,48 @@ class SypBot:
 
     async def notificate(self):
         while True:
-            # users = await self.db_manager.get_users()
-            # for user in users:
-            # last_db_transaction = await self.db_manager.get_last_transaction(user.chat_id)
-            # history = await self.syp_api_manager.get_history(user.chat_id, 1)
-            # if history[0]['date'] == last_db_transaction.date:
-            #     continue
-            # await self.bot.send_message(user.chat_id, 'lol')
-            # await self.db_manager.edit_transaction(last_db_transaction.id)
-            # await self.db_manager.add_transaction()
-            await asyncio.sleep(10)
+            async with self.db_manager.session_pool() as session:
+                users = await self.db_manager.get_users(session)
+                for user in users:
+                    message = 'New trasaction(s):\n'
+                    last_db_transaction = await self.db_manager.get_last_transaction(
+                        session, user.chat_id
+                    )
+                    history = await self.syp_api_manager.get_history(user.chat_id)
+                    if not history or (
+                        Formatter.convert_str_to_datetime(history[0]['date'])
+                        == last_db_transaction.date
+                    ):
+                        continue
+                    for i in range(2, 0):
+                        try:
+                            transaction_date = Formatter.convert_str_to_datetime(
+                                history[i]['date']
+                            )
+                        except Exception as e:
+                            print(e)
+                            continue
+                        if transaction_date > last_db_transaction.date:
+                            message += Formatter.format_transaction(history[i])
+                            await self.db_manager.edit_last_transaction(
+                                session,
+                                user.chat_id,
+                            )
+                            await self.db_manager.add_transaction(
+                                session, history[i], user.chat_id
+                            )
+                    value, used_value = await self.syp_api_manager.get_balance(user.card_number)
+                    balance = value - used_value
+                    message += f'\n{balance}'
+                    await self.bot.send_message(user.chat_id, message)
+            await asyncio.sleep(180)
 
     def get_logger(self):
         logger = logging.getLogger('main')
         logging.basicConfig(level=logging.INFO)
         handler = FileHandler('syp_bot.log')
         handler.setFormatter(
-            Formatter(
+            logging_formatter(
                 '[%(asctime)s][%(levelname)s] %(message)s',
                 '%Y-%m-%d %H:%M:%S',
             )

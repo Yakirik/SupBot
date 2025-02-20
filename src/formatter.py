@@ -5,8 +5,12 @@ from database import Transaction
 
 class Formatter:
     @classmethod
-    def format_transaction(cls, transaction: Transaction) -> str:
-        return f'{transaction.name}\n' f'-{transaction.amount} ₽\n' f'{transaction.date}\n'
+    def format_transaction(cls, transaction: dict) -> str:
+        return (
+            f'{transaction['locationName']}\n'
+            f'{transaction['amount']} ₽\n'
+            f'{transaction['date']}\n'
+        )
 
     @classmethod
     def format_new_transaction(cls, transaction: Transaction, balance: int) -> str:

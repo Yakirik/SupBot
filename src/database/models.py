@@ -28,7 +28,7 @@ class Transaction(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     merchant_id: Mapped[int]
-    name: Mapped[str]
+    location_name: Mapped[str]
     mcc: Mapped[int]
     amount: Mapped[int]
     date: Mapped[datetime]

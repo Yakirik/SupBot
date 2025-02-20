@@ -25,7 +25,9 @@ async def select_history_period_handler(
     db_manager: DatabaseManager,
 ) -> None:
     chat_id = callback_query.message.chat.id
-    card_number = await db_manager.get_card_number(chat_id)
+    async with db_manager.session_pool() as session:
+        card_number = await db_manager.get_card_number(session, chat_id)
+
     if not card_number:
         callback_query.message.answer(text='Set card first')
     elif history := await syp_api_manager.get_history(card_number, int(callback_query.data)):
@@ -33,7 +35,7 @@ async def select_history_period_handler(
         for transaction in history:
             time = datetime.fromisoformat(transaction['date']).strftime('%H:%M %d %B %Y')
             answer += HISTORY_TEXT.format(
-                name=transaction['name'],
+                name=transaction['locationName'],
                 mcc=transaction['mcc'],
                 amount=transaction['amount'],
                 date=time,
