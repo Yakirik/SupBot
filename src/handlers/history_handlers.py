@@ -33,7 +33,9 @@ async def select_history_period_handler(
     elif history := await syp_api_manager.get_history(card_number, int(callback_query.data)):
         answer = 'History\n'
         for transaction in history:
-            time = datetime.fromisoformat(transaction['date']).strftime('%H:%M %d %B %Y')
+            # time = datetime.fromisoformat(transaction['date']).strftime('%H:%M %d %B %Y')
+            time = datetime.strptime(transaction['date'], "%Y-%m-%dT%H:%M:%S.%f%z")
+            # time = datetime.strptime(transaction['date'], '%H:%M %d %B %Y')
             answer += HISTORY_TEXT.format(
                 name=transaction['locationName'],
                 mcc=transaction['mcc'],

@@ -1,15 +1,17 @@
 from datetime import datetime
 
+from data import HISTORY_TEXT
 from database import Transaction
 
 
 class Formatter:
     @classmethod
     def format_transaction(cls, transaction: dict) -> str:
-        return (
-            f'{transaction['locationName']}\n'
-            f'{transaction['amount']} ₽\n'
-            f'{transaction['date']}\n'
+        return HISTORY_TEXT.format(
+            name=transaction['locationName'],
+            mcc=transaction['mcc'],
+            amount=transaction['amount'],
+            date=cls.convert_datetime_to_str(transaction['date']),
         )
 
     @classmethod
@@ -22,11 +24,11 @@ class Formatter:
         )
 
     @classmethod
-    def convert_str_to_datetime(cls, date_str: str) -> datetime:
+    def convert_iso_to_datetime(cls, date_str: str) -> datetime:
         return datetime.fromisoformat(date_str)
 
     @classmethod
-    def convert_datetime_to_str(cls, date_str: datetime) -> str:
+    def convert_datetime_to_str(cls, date_str: str) -> str:
         return date_str.strftime('%H:%M %d %B %Y')
 
 

@@ -1,8 +1,4 @@
 import os
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from formatter import Formatter
 
 from dotenv import find_dotenv, load_dotenv
 from sqlalchemy import select
@@ -71,7 +67,7 @@ class DatabaseManager:
             try:
                 return user.card_number
             except Exception:
-                session.rollback()
+                pass
 
     async def get_users(self, session: AsyncSession) -> list[User]:
         query = select(User)
@@ -85,34 +81,45 @@ class DatabaseManager:
         transaction: dict,
         chat_id: int,
     ) -> None:
-        transaction_date = Formatter.convert_str_to_datetime(transaction['date'])
-        user = Transaction(
-            merchant_id=transaction['merchantId'],
-            location_name=transaction['locationName'],
-            mcc=transaction['mcc'],
-            amount=transaction['amount'],
-            date=transaction_date,
-            is_last=True,
-            chat_id=chat_id,
-        )
+        try:
+            user = Transaction(
+                merchant_id=transaction['merchantId'],
+                location_name=transaction['locationName'],
+                mcc=transaction['mcc'],
+                amount=transaction['amount'],
+                date=transaction['date'],
+                is_last=True,
+                chat_id=chat_id,
+            )
+        except Exception:
+            print('failed to create new transaction')
         try:
             session.add(user)
             await session.commit()
         except Exception:
-            await session.rollback()
+            print('failed to commit new transaction')
+            # await session.rollback()
 
     async def get_last_transaction(self, session: AsyncSession, chat_id: int) -> Transaction:
         try:
             query = select(Transaction).filter_by(chat_id=chat_id, is_last=True)
-            last_transaction = await session.execute(query)
-            return last_transaction
+            res = await session.execute(query)
+            last_transaction = res.scalars().first()
+            # print(last_transaction)
+            if last_transaction:
+                return last_transaction
+            else:
+                return None
         except Exception:
-            pass
+            print('lol')
+            return None
 
     async def edit_last_transaction(self, session: AsyncSession, chat_id: int) -> None:
         try:
             last_transaction = await self.get_last_transaction(session, chat_id)
             last_transaction.is_last = False
             await session.commit()
+        except AttributeError:
+            pass
         except Exception:
             await session.rollback()

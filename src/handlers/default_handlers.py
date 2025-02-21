@@ -67,9 +67,7 @@ async def limit_handler(
 
 
 @router.message(F.text == 'Get card number')
-async def get_card_number_handler(
-    message: types.Message, syp_api_manager: SypApiManager, db_manager: DatabaseManager
-):
+async def get_card_number_handler(message: types.Message, db_manager: DatabaseManager):
     chat_id = message.chat.id
     async with db_manager.session_pool() as session:
         card_number = await db_manager.get_card_number(session, chat_id)

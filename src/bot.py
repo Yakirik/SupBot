@@ -1,11 +1,13 @@
 import asyncio
 import logging
 import os
+from datetime import datetime
 from formatter import Formatter
 from logging import FileHandler
 from logging import Formatter as logging_formatter
 from logging import Logger
 
+import pytz
 from aiogram import Bot, Dispatcher
 from dotenv import find_dotenv, load_dotenv
 
@@ -54,32 +56,50 @@ class SypBot:
                     last_db_transaction = await self.db_manager.get_last_transaction(
                         session, user.chat_id
                     )
-                    history = await self.syp_api_manager.get_history(user.chat_id)
-                    if not history or (
-                        Formatter.convert_str_to_datetime(history[0]['date'])
-                        == last_db_transaction.date
-                    ):
+                    history = await self.syp_api_manager.get_history(user.card_number)
+
+                    if not history:
+                        print('history issue')
                         continue
-                    for i in range(2, 0):
-                        try:
-                            transaction_date = Formatter.convert_str_to_datetime(
-                                history[i]['date']
-                            )
-                        except Exception as e:
-                            print(e)
-                            continue
-                        if transaction_date > last_db_transaction.date:
-                            message += Formatter.format_transaction(history[i])
-                            await self.db_manager.edit_last_transaction(
-                                session,
-                                user.chat_id,
-                            )
-                            await self.db_manager.add_transaction(
-                                session, history[i], user.chat_id
-                            )
+                    if not last_db_transaction:
+                        print('last_db_trans is empty')
+                        history[0]['date'] = datetime.fromisoformat(history[0]['date'])
+                        await self.db_manager.add_transaction(session, history[0], user.chat_id)
+                        continue
+                    if datetime.fromisoformat(history[0]['date']) == last_db_transaction.date:
+                        print('last trans are the same')
+                        continue
+
+                    new_transactions = []
+                    for transaction in history:
+                        transaction['date'] = datetime.fromisoformat(transaction['date'])
+                        db_transaction_time = last_db_transaction.date
+                        db_transaction_time = db_transaction_time.astimezone(
+                            pytz.timezone('Europe/Moscow')
+                        )
+                        # api_transaction_time = api_transaction_time.astimezone(
+                        #     pytz.timezone('Europe/Moscow')
+                        # )
+                        if transaction['date'] <= db_transaction_time:
+                            break
+                        new_transactions.append(transaction)
+                        message += Formatter.format_transaction(transaction)
+
+                    for transaction in reversed(new_transactions):
+                        await self.db_manager.edit_last_transaction(
+                            session,
+                            user.chat_id,
+                        )
+
+                        await self.db_manager.add_transaction(
+                            session,
+                            transaction,
+                            user.chat_id,
+                        )
+
                     value, used_value = await self.syp_api_manager.get_balance(user.card_number)
                     balance = value - used_value
-                    message += f'\n{balance}'
+                    message += f'{balance}'
                     await self.bot.send_message(user.chat_id, message)
             await asyncio.sleep(180)
 

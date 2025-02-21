@@ -16,6 +16,7 @@ HISTORY_TEXT = """
 {name} (mcc {mcc})
 {amount} ₽
 {date}
+
 """
 
 HELP_TEXT = """
