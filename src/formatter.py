@@ -13,7 +13,9 @@ class Formatter:
             name=transaction['locationName'],
             mcc=transaction['mcc'],
             amount=transaction['amount'],
-            date=cls.convert_datetime_to_str(transaction['date']),
+            date=cls.convert_datetime_to_str(
+                cls.to_timezone(transaction['date'], 'Asia/Novosibirsk')
+            ),
         )
 
     @classmethod
