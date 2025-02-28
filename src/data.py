@@ -6,6 +6,17 @@ history_callback_data = {
 }
 callback_back = 'Back'
 
+timezone_callback_data = {
+    'Novosibirsk': 'Asia/Novosibirsk',
+    'Moscow': 'Europe/Moscow',
+    'Kamchatka': 'Asia/Kamchatka',
+    'Sakhalin': 'Asia/Sakhalin',
+    'Omsk': 'Asia/Omsk',
+    'Yekaterinburg': 'Asia/Yekaterinburg',
+    'Samara': 'Europe/Samara',
+    'Kaliningrad': 'Europe/Kaliningrad',
+}
+
 LIMIT_TEXT = """
 Today's limit: {limit} ₽
 Used: {used} ₽

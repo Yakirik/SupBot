@@ -1,13 +1,11 @@
 import asyncio
 import logging
 import os
-from datetime import datetime
 from formatter import Formatter
 from logging import FileHandler
 from logging import Formatter as logging_formatter
 from logging import Logger
 
-import pytz
 from aiogram import Bot, Dispatcher
 from dotenv import find_dotenv, load_dotenv
 
@@ -42,7 +40,7 @@ class SypBot:
         await self.db_manager.create_db()
         self.dispatcher.update.middleware(DatabaseMiddleware(db_manager=self.db_manager))
         self.dispatcher.update.middleware(SypApiMiddleware(syp_api_manager=self.syp_api_manager))
-        asyncio.create_task(self.notificate())
+        # asyncio.create_task(self.notificate())
 
     async def on_shutdown(self):
         await self.syp_api_manager.session.close()
@@ -83,12 +81,6 @@ class SypBot:
                                 transaction,
                                 chat_id,
                             )
-                        # history[0]['date'] = last_api_transaction_time
-                        # await self.db_manager.add_transaction(
-                        #     session,
-                        #     history[0],
-                        #     chat_id,
-                        # )
                         continue
 
                     if last_api_transaction_time == last_db_transaction.date:
@@ -108,11 +100,11 @@ class SypBot:
                             break
 
                         new_transactions.append(transaction)
-                        message += Formatter.format_transaction(transaction)
+                        message += Formatter.format_transaction(transaction, timezone)
 
                     value, used_value = await self.syp_api_manager.get_limit(user.card_number)
                     balance = value - used_value
-                    message += f'{balance}'
+                    message += f'Balance: {balance} ₽'
                     await self.bot.send_message(chat_id, message)
                     for transaction in reversed(new_transactions):
                         await self.db_manager.edit_last_transaction(

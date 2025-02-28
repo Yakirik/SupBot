@@ -7,3 +7,7 @@ class SetCardStateGroup(StatesGroup):
 
 class GetHistoryStateGroup(StatesGroup):
     choose_period = State()
+
+
+class SetTimeZoneStateGroup(StatesGroup):
+    choose_timezone = State()

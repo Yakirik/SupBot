@@ -99,7 +99,7 @@ class DatabaseManager:
             await session.commit()
         except Exception:
             print('failed to commit new transaction')
-            # await session.rollback()
+            await session.rollback()
 
     async def get_last_transaction(self, session: AsyncSession, chat_id: int) -> Transaction:
         try:
@@ -129,3 +129,15 @@ class DatabaseManager:
             print('edit another exc')
             await session.rollback()
             pass
+
+    async def edit_timezone(self, session: AsyncSession, chat_id: int, timezone: str) -> None:
+        try:
+            user = await self.get_user(session, chat_id)
+            user.timezone = timezone
+            await session.commit()
+        except AttributeError:
+            print('attr error')
+            await session.rollback()
+        except Exception:
+            print('another exc')
+            await session.rollback()

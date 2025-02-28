@@ -8,13 +8,13 @@ from database import Transaction
 
 class Formatter:
     @classmethod
-    def format_transaction(cls, transaction: dict) -> str:
+    def format_transaction(cls, transaction: dict, timezone: str) -> str:
         return HISTORY_TEXT.format(
             name=transaction['locationName'],
             mcc=transaction['mcc'],
             amount=transaction['amount'],
             date=cls.convert_datetime_to_str(
-                cls.to_timezone(transaction['date'], 'Asia/Novosibirsk')
+                cls.to_timezone(transaction['date'], timezone),
             ),
         )
 
