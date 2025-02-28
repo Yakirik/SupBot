@@ -53,54 +53,75 @@ class SypBot:
                 users = await self.db_manager.get_users(session)
                 for user in users:
                     message = 'New trasaction(s):\n'
-                    last_db_transaction = await self.db_manager.get_last_transaction(
-                        session, user.chat_id
-                    )
-                    history = await self.syp_api_manager.get_history(user.card_number)
+                    timezone = user.timezone
+                    chat_id = user.chat_id
+                    card_number = user.card_number
+                    history = await self.syp_api_manager.get_history(card_number)
 
                     if not history:
                         print('history issue')
                         continue
+
+                    last_db_transaction = await self.db_manager.get_last_transaction(
+                        session, chat_id
+                    )
+                    last_api_transaction_time = Formatter.to_timezone(
+                        history[0]['date'],
+                        'Europe/Moscow',
+                    )
+
                     if not last_db_transaction:
                         print('last_db_trans is empty')
-                        history[0]['date'] = datetime.fromisoformat(history[0]['date'])
-                        await self.db_manager.add_transaction(session, history[0], user.chat_id)
+                        for transaction in reversed(history):
+                            transaction['date'] = Formatter.to_timezone(
+                                transaction['date'],
+                                'Europe/Moscow',
+                            )
+                            await self.db_manager.edit_last_transaction(session, chat_id)
+                            await self.db_manager.add_transaction(
+                                session,
+                                transaction,
+                                chat_id,
+                            )
+                        # history[0]['date'] = last_api_transaction_time
+                        # await self.db_manager.add_transaction(
+                        #     session,
+                        #     history[0],
+                        #     chat_id,
+                        # )
                         continue
-                    if datetime.fromisoformat(history[0]['date']) == last_db_transaction.date:
+
+                    if last_api_transaction_time == last_db_transaction.date:
                         print('last trans are the same')
                         continue
 
                     new_transactions = []
                     for transaction in history:
-                        transaction['date'] = datetime.fromisoformat(transaction['date'])
-                        db_transaction_time = last_db_transaction.date
-                        db_transaction_time = db_transaction_time.astimezone(
-                            pytz.timezone('Europe/Moscow')
+                        transaction['date'] = Formatter.to_timezone(
+                            transaction['date'],
+                            'Europe/Moscow',
                         )
-                        # api_transaction_time = api_transaction_time.astimezone(
-                        #     pytz.timezone('Europe/Moscow')
-                        # )
+                        db_transaction_time = last_db_transaction.date
+                        print(db_transaction_time)
+
                         if transaction['date'] <= db_transaction_time:
                             break
+
                         new_transactions.append(transaction)
                         message += Formatter.format_transaction(transaction)
 
+                    value, used_value = await self.syp_api_manager.get_limit(user.card_number)
+                    balance = value - used_value
+                    message += f'{balance}'
+                    await self.bot.send_message(chat_id, message)
                     for transaction in reversed(new_transactions):
                         await self.db_manager.edit_last_transaction(
                             session,
-                            user.chat_id,
+                            chat_id,
                         )
 
-                        await self.db_manager.add_transaction(
-                            session,
-                            transaction,
-                            user.chat_id,
-                        )
+                        await self.db_manager.add_transaction(session, transaction, chat_id)
 
-                    value, used_value = await self.syp_api_manager.get_balance(user.card_number)
-                    balance = value - used_value
-                    message += f'{balance}'
-                    await self.bot.send_message(user.chat_id, message)
             await asyncio.sleep(180)
 
     def get_logger(self):

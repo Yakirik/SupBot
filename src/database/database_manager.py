@@ -91,8 +91,9 @@ class DatabaseManager:
                 is_last=True,
                 chat_id=chat_id,
             )
-        except Exception:
+        except Exception as e:
             print('failed to create new transaction')
+            print(e)
         try:
             session.add(user)
             await session.commit()
@@ -110,8 +111,9 @@ class DatabaseManager:
                 return last_transaction
             else:
                 return None
-        except Exception:
+        except Exception as e:
             print('lol')
+            print(e)
             return None
 
     async def edit_last_transaction(self, session: AsyncSession, chat_id: int) -> None:
@@ -119,7 +121,11 @@ class DatabaseManager:
             last_transaction = await self.get_last_transaction(session, chat_id)
             last_transaction.is_last = False
             await session.commit()
+            print('edit success')
         except AttributeError:
+            print('edit attr error')
             pass
         except Exception:
+            print('edit another exc')
             await session.rollback()
+            pass

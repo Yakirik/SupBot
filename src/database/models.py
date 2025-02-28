@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Numeric, func
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Numeric, String, func
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -17,6 +17,7 @@ class User(Base):
     username: Mapped[str]
     card_number: Mapped[int | None]
     balance: Mapped[int | None] = mapped_column(Numeric, nullable=True)
+    timezone: Mapped[str | None] = mapped_column(String, default='Europe/Moscow')
     last_get_balance_request: Mapped[datetime | None]
     last_get_history_request: Mapped[datetime | None]
     last_get_limit_request: Mapped[datetime | None]
@@ -27,10 +28,10 @@ class Transaction(Base):
     __tablename__ = 'transaction'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    merchant_id: Mapped[int]
-    location_name: Mapped[str]
-    mcc: Mapped[int]
-    amount: Mapped[int]
-    date: Mapped[datetime]
-    is_last: Mapped[bool]
-    chat_id: Mapped[int] = mapped_column()  # foreign key
+    merchant_id: Mapped[int | None]
+    location_name: Mapped[str | None]
+    mcc: Mapped[int | None]
+    amount: Mapped[int | None]
+    date: Mapped[datetime | None]
+    is_last: Mapped[bool | None]
+    chat_id: Mapped[int] = Column(Integer, ForeignKey('user.chat_id'))  # foreign key
