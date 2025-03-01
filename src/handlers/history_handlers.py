@@ -1,4 +1,4 @@
-from datetime import datetime
+from formatter import Formatter
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
@@ -27,15 +27,15 @@ async def select_history_period_handler(
     chat_id = callback_query.message.chat.id
     async with db_manager.session_pool() as session:
         card_number = await db_manager.get_card_number(session, chat_id)
+        user = await db_manager.get_user(session, chat_id)
 
     if not card_number:
         callback_query.message.answer(text='Set card first')
     elif history := await syp_api_manager.get_history(card_number, int(callback_query.data)):
         answer = 'History\n'
         for transaction in history:
-            # time = datetime.fromisoformat(transaction['date']).strftime('%H:%M %d %B %Y')
-            time = datetime.strptime(transaction['date'], "%Y-%m-%dT%H:%M:%S.%f%z")
-            # time = datetime.strptime(transaction['date'], '%H:%M %d %B %Y')
+            time = Formatter.to_timezone(transaction['date'], user.timezone)
+            time = Formatter.convert_datetime_to_str(time)
             answer += HISTORY_TEXT.format(
                 name=transaction['locationName'],
                 mcc=transaction['mcc'],
