@@ -102,7 +102,7 @@ class SypBot:
                         new_transactions.append(transaction)
                         message += Formatter.format_transaction(transaction, timezone)
 
-                    value, used_value = await self.syp_api_manager.get_limit(user.card_number)
+                    value, used_value = await self.syp_api_manager.get_limit(card_number)
                     balance = value - used_value
                     message += f'Balance: {balance} ₽'
                     await self.bot.send_message(chat_id, message)

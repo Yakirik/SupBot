@@ -1,18 +1,37 @@
+from datetime import datetime
 from formatter import Formatter
 
-from aiogram import F, Router
+from aiogram import F, Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
 from data import HISTORY_TEXT, history_callback_data
 from database import DatabaseManager
-from keyboards import build_main_menu
+from keyboards import build_history_keyboard, build_main_menu
 from logger import get_logger
 from states import GetHistoryStateGroup
 from syp_api_manager import SypApiManager
 
 router = Router()
 logger = get_logger(__name__)
+
+
+@router.message(F.text == 'History')
+async def history_handler(message: types.Message, state: FSMContext, db_manager: DatabaseManager):
+    chat_id = message.chat.id
+    async with db_manager.session_pool() as session:
+        user = await db_manager.get_user(session, chat_id)
+
+        if user.last_get_history_request:
+            if (datetime.now() - user.last_get_history_request).seconds < 300:
+                await message.answer(text='cooldown')
+                return
+
+        user.last_get_history_request = datetime.now()
+        await session.commit()
+
+    await message.answer(text='Select period', reply_markup=build_history_keyboard())
+    await state.set_state(GetHistoryStateGroup.choose_period)
 
 
 @router.callback_query(
@@ -30,7 +49,7 @@ async def select_history_period_handler(
         user = await db_manager.get_user(session, chat_id)
 
     if not card_number:
-        callback_query.message.answer(text='Set card first')
+        await callback_query.message.answer(text='Set card first')
     elif history := await syp_api_manager.get_history(card_number, int(callback_query.data)):
         answer = 'History\n'
         for transaction in history:

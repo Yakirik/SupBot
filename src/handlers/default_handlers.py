@@ -1,12 +1,12 @@
+from datetime import datetime
+
 from aiogram import F, Router, types
 from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
 
 from data import LIMIT_TEXT
 from database import DatabaseManager
-from keyboards import build_history_keyboard, build_main_menu
+from keyboards import build_main_menu
 from logger import get_logger
-from states import GetHistoryStateGroup
 from syp_api_manager import SypApiManager
 
 router = Router()
@@ -39,6 +39,14 @@ async def balance_handler(
     chat_id = message.chat.id
     async with db_manager.session_pool() as session:
         card_number = await db_manager.get_card_number(session, chat_id)
+        user = await db_manager.get_user(session, chat_id)
+        if user.last_get_balance_request:
+            if (datetime.now() - user.last_get_balance_request).seconds < 300:
+                await message.answer(text='cooldown')
+                return
+
+        user.last_get_balance_request = datetime.now()
+        await session.commit()
 
     if not card_number:
         await message.answer(text='First set card')
@@ -55,6 +63,14 @@ async def limit_handler(
     chat_id = message.chat.id
     async with db_manager.session_pool() as session:
         card_number = await db_manager.get_card_number(session, chat_id)
+        user = await db_manager.get_user(session, chat_id)
+        if user.last_get_limit_request:
+            if (datetime.now() - user.last_get_limit_request).seconds < 300:
+                await message.answer(text='cooldown')
+                return
+
+        user.last_get_limit_request = datetime.now()
+        await session.commit()
 
     if not card_number:
         await message.answer(text='First set card')
@@ -76,9 +92,3 @@ async def get_card_number_handler(message: types.Message, db_manager: DatabaseMa
         await message.answer(text='First set card')
     else:
         await message.answer(text=f'{card_number}', reply_markup=build_main_menu())
-
-
-@router.message(F.text == 'History')
-async def history_handler(message: types.Message, state: FSMContext):
-    await message.answer(text='Select period', reply_markup=build_history_keyboard())
-    await state.set_state(GetHistoryStateGroup.choose_period)
