@@ -3,7 +3,6 @@ from datetime import datetime
 import pytz
 
 from data import HISTORY_TEXT
-from database import Transaction
 
 
 class Formatter:
@@ -17,19 +16,6 @@ class Formatter:
                 cls.to_timezone(transaction['date'], timezone),
             ),
         )
-
-    @classmethod
-    def format_new_transaction(cls, transaction: Transaction, balance: int) -> str:
-        formatted_transaction = cls.format_transaction(transaction)
-        return (
-            'New transaction\n'
-            f'{formatted_transaction}\n'
-            f'Balance: {(balance - transaction.amount)}₽'
-        )
-
-    @classmethod
-    def convert_iso_to_datetime(cls, date_str: str) -> datetime:
-        return datetime.fromisoformat(date_str)
 
     @classmethod
     def convert_datetime_to_str(cls, date_str: datetime) -> str:
