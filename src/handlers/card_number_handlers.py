@@ -29,4 +29,6 @@ async def process_card_number_handler(
         chat_id = message.chat.id
         async with db_manager.session_pool() as session:
             await db_manager.set_card_number(session, chat_id, int(message.text))
-        await message.answer(text='all good', reply_markup=build_main_menu())
+        await message.answer(
+            text=f'Card number set to {message.text}', reply_markup=build_main_menu()
+        )

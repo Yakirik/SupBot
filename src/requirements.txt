@@ -16,6 +16,7 @@ propcache==0.2.1
 pydantic==2.10.6
 pydantic_core==2.27.2
 python-dotenv==1.0.1
+pytz==2025.1
 setuptools==75.8.0
 SQLAlchemy==2.0.38
 typing_extensions==4.12.2

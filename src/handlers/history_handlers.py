@@ -24,11 +24,16 @@ async def history_handler(message: types.Message, state: FSMContext, db_manager:
 
         if user.last_get_history_request:
             if (datetime.now() - user.last_get_history_request).seconds < 300:
-                await message.answer(text='cooldown')
+                last_get_history_request = Formatter.convert_datetime_to_str(
+                    Formatter.to_timezone(user.last_get_history_request, user.timezone)
+                )
+                await message.answer(
+                    text=(
+                        'You can request history only once per 5 minutes.\n'
+                        f'Last  request was {last_get_history_request}'
+                    )
+                )
                 return
-
-        user.last_get_history_request = datetime.now()
-        await session.commit()
 
     await message.answer(text='Select period', reply_markup=build_history_keyboard())
     await state.set_state(GetHistoryStateGroup.choose_period)
@@ -45,15 +50,19 @@ async def select_history_period_handler(
 ) -> None:
     chat_id = callback_query.message.chat.id
     async with db_manager.session_pool() as session:
-        card_number = await db_manager.get_card_number(session, chat_id)
         user = await db_manager.get_user(session, chat_id)
+        card_number = user.card_number
+        timezone = user.timezone
+        user.last_get_history_request = datetime.now()
+        await session.commit()
 
     if not card_number:
+        await callback_query.message.delete()
         await callback_query.message.answer(text='Set card first')
     elif history := await syp_api_manager.get_history(card_number, int(callback_query.data)):
         answer = 'History\n'
         for transaction in history:
-            time = Formatter.to_timezone(transaction['date'], user.timezone)
+            time = Formatter.to_timezone(transaction['date'], timezone)
             time = Formatter.convert_datetime_to_str(time)
             answer += HISTORY_TEXT.format(
                 name=transaction['locationName'],

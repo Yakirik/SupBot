@@ -1,4 +1,5 @@
 from datetime import datetime
+from formatter import Formatter
 
 from aiogram import F, Router, types
 from aiogram.filters import Command
@@ -38,11 +39,19 @@ async def balance_handler(
 ):
     chat_id = message.chat.id
     async with db_manager.session_pool() as session:
-        card_number = await db_manager.get_card_number(session, chat_id)
         user = await db_manager.get_user(session, chat_id)
+        card_number = user.card_number
         if user.last_get_balance_request:
             if (datetime.now() - user.last_get_balance_request).seconds < 300:
-                await message.answer(text='cooldown')
+                last_get_balance_request = Formatter.convert_datetime_to_str(
+                    Formatter.to_timezone(user.last_get_balance_request, user.timezone)
+                )
+                await message.answer(
+                    text=(
+                        'You can request balance only once per 5 minutes.\n'
+                        f'Last  request was {last_get_balance_request}'
+                    )
+                )
                 return
 
         user.last_get_balance_request = datetime.now()
@@ -62,11 +71,19 @@ async def limit_handler(
 ):
     chat_id = message.chat.id
     async with db_manager.session_pool() as session:
-        card_number = await db_manager.get_card_number(session, chat_id)
         user = await db_manager.get_user(session, chat_id)
+        card_number = user.card_number
         if user.last_get_limit_request:
             if (datetime.now() - user.last_get_limit_request).seconds < 300:
-                await message.answer(text='cooldown')
+                last_get_limit_request = Formatter.convert_datetime_to_str(
+                    Formatter.to_timezone(user.last_get_limit_request, user.timezone)
+                )
+                await message.answer(
+                    text=(
+                        'You can request limit only once per 5 minutes.\n'
+                        f'Last  request was {last_get_limit_request}'
+                    )
+                )
                 return
 
         user.last_get_limit_request = datetime.now()
