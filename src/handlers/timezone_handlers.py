@@ -32,10 +32,15 @@ async def select_timezone_handler(
         async with db_manager.session_pool() as session:
             await db_manager.edit_timezone(session, chat_id, callback_query.data)
         await callback_query.message.delete()
-        await callback_query.message.answer(text='success', reply_markup=build_main_menu())
+        await callback_query.message.answer(
+            text=f'timezone set to {callback_query.data.split("/")[1]}',
+            reply_markup=build_main_menu(),
+        )
     except Exception:
         await callback_query.message.delete()
-        await callback_query.message.answer(text='fail', reply_markup=build_main_menu())
+        await callback_query.message.answer(
+            text='failed to set timezone', reply_markup=build_main_menu()
+        )
     await state.clear()
 
 
