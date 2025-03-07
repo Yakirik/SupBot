@@ -40,7 +40,7 @@ class SypBot:
         await self.db_manager.create_db()
         self.dispatcher.update.middleware(DatabaseMiddleware(db_manager=self.db_manager))
         self.dispatcher.update.middleware(SypApiMiddleware(syp_api_manager=self.syp_api_manager))
-        # asyncio.create_task(self.notificate())
+        asyncio.create_task(self.notificate())
 
     async def on_shutdown(self):
         await self.syp_api_manager.session.close()
